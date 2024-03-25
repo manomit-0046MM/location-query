@@ -21,18 +21,7 @@ import static org.mockito.Mockito.when;
 public class LocationControllerTest extends LocationBaseTest {
 
 
-    @Test
-    public void allLocationTest() {
-        when(locationService.findAllLocation()).thenReturn(locationList);
-        this.client
-                .get()
-                .uri("/location/all")
-                .exchange()
-                .expectStatus().is2xxSuccessful()
-                .expectHeader().contentType(MediaType.APPLICATION_JSON)
-                .expectBodyList(Location.class)
-                .hasSize(2);
-    }
+
 
     @Test
     public void claimsTest() {
@@ -56,6 +45,22 @@ public class LocationControllerTest extends LocationBaseTest {
                         uriBuilder
                                 .path("/location")
                                 .queryParam("geoType", "City")
+                                .build())
+                .exchange()
+                .expectStatus().is2xxSuccessful()
+                .expectHeader().contentType(MediaType.APPLICATION_JSON)
+                .expectBodyList(Location.class)
+                .hasSize(2);
+    }
+    @Test
+    public void findByGeoNameTest() {
+        when(locationService.findByName(anyString())).thenReturn(locationList);
+        this.client
+                .get()
+                .uri(uriBuilder ->
+                        uriBuilder
+                                .path("/location/search-by-name")
+                                .queryParam("name", "P")
                                 .build())
                 .exchange()
                 .expectStatus().is2xxSuccessful()

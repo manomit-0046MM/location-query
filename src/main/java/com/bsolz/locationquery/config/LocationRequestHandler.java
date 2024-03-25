@@ -25,7 +25,8 @@ public class LocationRequestHandler {
 
     public Mono<ServerResponse> findByNameAndGeoType(ServerRequest serverRequest) {
         if (serverRequest.queryParam("name").isEmpty() || serverRequest.queryParam("geoType").isEmpty()) {
-            throw new InputValidationException(HttpStatus.FORBIDDEN.value());
+            // throw new InputValidationException(HttpStatus.FORBIDDEN.value());
+            Mono.error(new InputValidationException(HttpStatus.FORBIDDEN.value()));
         }
         return ServerResponse.ok().body(locationService.findByNameAndGeoType(
                 serverRequest.queryParam("name").orElseThrow(() -> new InputValidationException(HttpStatus.FORBIDDEN.value())),

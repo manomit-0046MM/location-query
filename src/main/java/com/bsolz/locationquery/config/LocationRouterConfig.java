@@ -30,30 +30,35 @@ public class LocationRouterConfig {
 
     private RouterFunction<ServerResponse> responseRouterFunction() {
         return RouterFunctions.route()
-                //.GET("", queryParam("geoType", t -> true), requestHandler::findByGeoType)
-                //.GET("all", requestHandler::allLocation)
                 .GET("search",
                         RequestPredicates
                                 .all()
-                                .and(queryParam("name", t -> true)
-                                .and(queryParam("geoType", t -> true))),
+                                .and(queryParam("name", t -> !t.isEmpty())
+                                .and(queryParam("geoType", t -> !t.isEmpty()))),
                 requestHandler::findByNameAndGeoType)
-                .GET("search-by-name", queryParam("name", t -> true), requestHandler::findByName)
-                //.filter(noQueryParamFound())
-                .onError(InputValidationException.class, exceptionHandler())
+                .GET("search", req -> ServerResponse.badRequest().bodyValue(
+                    new ApiResponse(HttpStatus.BAD_REQUEST.value(), "No Parameter Founds", new SimpleDateFormat("MMM dd,yyyy HH:mm").format(new Date(System.currentTimeMillis()))
+                )))
+                //.onError(InputValidationException.class, exceptionHandler())
+                .GET("all", requestHandler::allLocation)
+                .filter(dataNotFoundToBadRequest())
                 .build();
     }
 
-    private HandlerFilterFunction<ServerResponse, ServerResponse> noQueryParamFound() {
+    private HandlerFilterFunction<ServerResponse, ServerResponse> dataNotFoundToBadRequest() {
+        System.out.println("Filter Here");
         return (request, next) -> next.handle(request)
                 .onErrorResume(InputValidationException.class, e -> ServerResponse.badRequest().build());
-                //.onErrorResume(DataNotFoundException.class, e -> ServerResponse.badRequest().build());
     }
 
     private BiFunction<Throwable, ServerRequest, Mono<ServerResponse>> exceptionHandler() {
+        System.out.println("Exception Here");
         return (err, req) -> {
             var ex = (InputValidationException) err;
-            return ServerResponse.badRequest().bodyValue(new ApiResponse(HttpStatus.BAD_REQUEST.value(), ex.getMessage(), new SimpleDateFormat("MMM dd,yyyy HH:mm").format(new Date(System.currentTimeMillis()))));
+            return ServerResponse.badRequest()
+                    .bodyValue(
+                            new ApiResponse(HttpStatus.BAD_REQUEST.value(), ex.getMessage(), new SimpleDateFormat("MMM dd,yyyy HH:mm").format(new Date(System.currentTimeMillis())))
+                    );
         };
     }
 }

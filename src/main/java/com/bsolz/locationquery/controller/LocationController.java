@@ -1,8 +1,11 @@
 package com.bsolz.locationquery.controller;
 
+import com.bsolz.locationquery.exception.InputValidationException;
 import com.bsolz.locationquery.model.Location;
 import com.bsolz.locationquery.service.LocationService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,22 +29,24 @@ public class LocationController {
         return Mono.just(auth.getTokenAttributes());
     }
 
-    @GetMapping("all")
-    public Flux<Location> allLocations() {
-        return locationService.findAllLocation();
-    }
     @GetMapping
-    public Flux<Location> findByGeoType(@RequestParam String geoType) {
-        return locationService.findByGeoType(geoType);
-    }
-
-    /*@GetMapping("search")
-    public Flux<LocationDetails> findByNameAndGeoType(@RequestParam String name, @RequestParam String geoType) {
-        return locationRepository.findByNameAndGeoType(name, geoType);
+    public Mono<ResponseEntity<Flux<Location>>> findByGeoType(@RequestParam String geoType) {
+        return Mono.just(geoType)
+                .filter(s -> !s.isEmpty())
+                .map(locationService::findByGeoType)
+                .map(ResponseEntity::ok)
+                .defaultIfEmpty(ResponseEntity.badRequest().build());
     }
 
     @GetMapping("search-by-name")
-    public Flux<LocationDetails> findByName(@RequestParam String name) {
-        return locationRepository.findByName(name);
-    } */
+    public Flux<Location> searchByName(@RequestParam String name) {
+        return Flux.just(name)
+                .handle((value, sink) -> {
+                    if (value.isEmpty())
+                        sink.error(new InputValidationException(HttpStatus.BAD_REQUEST.value()));
+                    else
+                        sink.next(name);
+                }).cast(String.class)
+                .flatMap(this.locationService::findByName);
+    }
 }

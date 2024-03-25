@@ -15,7 +15,7 @@ import java.util.Date;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(InputValidationException.class)
-    public ResponseEntity<ApiResponse> handleInputValidationException(InputValidationException ex) {
+    public ResponseEntity<ApiResponse> handleException(InputValidationException ex) {
         return ResponseEntity.badRequest()
                 .body(new ApiResponse(ex.getErrorCode(), ex.getMessage(), new SimpleDateFormat("MMM dd,yyyy HH:mm").format(new Date(System.currentTimeMillis()))));
     }

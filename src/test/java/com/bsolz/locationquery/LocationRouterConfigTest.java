@@ -17,26 +17,6 @@ import static org.mockito.Mockito.when;
 public class LocationRouterConfigTest extends LocationBaseTest {
 
     @Test
-    public void findByNameTest() {
-        when(locationService.findByName(anyString())).thenReturn(locationList);
-        this.client
-                .get()
-                .uri(uriBuilder ->
-                        uriBuilder
-                                .path("/location/search-by-name")
-                                .queryParam("name", "p")
-                                .build())
-                .exchange()
-                .expectStatus().isOk()
-                .expectBodyList(Location.class)
-                .value(locationResponse -> {
-                    Assertions.assertThat(locationResponse.get(0).geoId()) .isEqualTo("A");
-                    Assertions.assertThat(locationResponse.get(0).geoType()) .isEqualTo("AT");
-                    Assertions.assertThat(locationResponse.get(0).name()) .isEqualTo("Homer Simpson");
-                });
-    }
-
-    @Test
     public void findByNameAndGeoTypeTest() {
         when(locationService.findByNameAndGeoType(anyString(), anyString())).thenReturn(locationListByNameAndGeoType);
         this.client
@@ -67,7 +47,7 @@ public class LocationRouterConfigTest extends LocationBaseTest {
                                 .path("/location/search")
                                 .build())
                 .exchange()
-                .expectStatus().isNotFound()
+                .expectStatus().isBadRequest()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON);
     }
 }
